@@ -1,0 +1,82 @@
+# ----------------------------
+# Python
+# ----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+.eggs/
+*.sqlite3
+*.db
+*.db-journal
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local development files
+*.log
+*.env
+.env.*
+.env.local
+.env.development
+.env.production
+
+# Alembic migrations (optional)
+alembic/*/versions/*.pyc
+alembic/*.ini
+
+# ----------------------------
+# FastAPI / Backend
+# ----------------------------
+backend/app/static/*
+!backend/app/static/.gitkeep
+backend/app/templates/*
+!backend/app/templates/.gitkeep
+
+# ----------------------------
+# Node / React / Frontend
+# ----------------------------
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-lock.yaml
+package-lock.json
+
+# Vite / React build output
+dist/
+build/
+*.tsbuildinfo
+
+# ----------------------------
+# IDE / Editor
+# ----------------------------
+.vscode/
+.idea/
+.DS_Store
+
+# JetBrains
+*.iml
+out/
+cmake-build*/
+
+# VS Code settings
+*.code-workspace
+
+# ----------------------------
+# Docker
+# ----------------------------
+# Ignore local build cache
+*.tar
+docker-compose.override.yml
+
+# ----------------------------
+# OS
+# ----------------------------
+Thumbs.db
+*.swp
+*.swo
