@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, Depends, Form
+from fastapi import FastAPI, Request, HTTPException, Form, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -11,8 +11,9 @@ from app.services.property_service import (
     ensure_seed_property,
     update_property_from_schema,
     get_all_properties,
+    create_property_from_schema,
 )
-from app.schemas.property import PropertyUpdate
+from app.schemas.property_schemas import PropertyUpdate, PropertyCreate
 
 settings = get_settings()
 
@@ -103,6 +104,92 @@ async def list_properties_page(request: Request, db=Depends(get_db)):
         },
     )
 
+@app.get("/admin/properties/new", response_class=HTMLResponse, include_in_schema=False)
+async def new_property_page(request: Request):
+    defaults = dict(
+        property_name="", slug="", address="",
+        contact_phone="", contact_email="",
+        wifi_name="", wifi_password="",
+        checkin_time="15:00", checkout_time="11:00",
+        checkin_instructions="", checkout_instructions="",
+        house_rules_text="", appliances_text="",
+        local_recommendations_text="",
+        emergency_info="For emergencies, dial 999. For non-urgent medical advice, dial 111.",
+        error=None,
+    )
+    return templates.TemplateResponse("admin_property_new.html", {"request": request, **defaults})
+
+@app.post("/admin/properties/new", response_class=HTMLResponse, include_in_schema=False)
+async def create_property(
+    request: Request,
+    db=Depends(get_db),
+    property_name: str = Form(...),
+    slug: str = Form(...),
+    address: str = Form(...),
+    contact_phone: str = Form(...),
+    contact_email: str = Form(...),
+    wifi_name: str = Form(...),
+    wifi_password: str = Form(...),
+    checkin_time: str = Form(...),
+    checkout_time: str = Form(...),
+    checkin_instructions: str = Form(""),
+    checkout_instructions: str = Form(""),
+    house_rules_text: str = Form(""),
+    appliances_text: str = Form(""),
+    local_recommendations_text: str = Form(""),
+    emergency_info: str = Form(""),
+):
+    slug = slug.strip()
+    error = None
+    if not slug:
+        error = "Slug is required."
+    elif " " in slug:
+        error = "Slug cannot contain spaces (use dashes)."
+
+    if error:
+        return templates.TemplateResponse(
+            "admin_property_new.html",
+            {
+                "request": request,
+                "property_name": property_name, "slug": slug, "address": address,
+                "contact_phone": contact_phone, "contact_email": contact_email,
+                "wifi_name": wifi_name, "wifi_password": wifi_password,
+                "checkin_time": checkin_time, "checkout_time": checkout_time,
+                "checkin_instructions": checkin_instructions, "checkout_instructions": checkout_instructions,
+                "house_rules_text": house_rules_text, "appliances_text": appliances_text,
+                "local_recommendations_text": local_recommendations_text,
+                "emergency_info": emergency_info,
+                "error": error,
+            },
+        )
+
+    data = PropertyCreate(
+        property_name=property_name, slug=slug, address=address,
+        contact_phone=contact_phone, contact_email=contact_email,
+        wifi_name=wifi_name, wifi_password=wifi_password,
+        checkin_time=checkin_time, checkout_time=checkout_time,
+        checkin_instructions=checkin_instructions, checkout_instructions=checkout_instructions,
+        house_rules=[l for l in house_rules_text.splitlines()],
+        appliances=[l for l in appliances_text.splitlines()],
+        local_recommendations_text=local_recommendations_text,
+        emergency_info=emergency_info,
+    )
+
+    try:
+        create_property_from_schema(db, data)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "admin_property_new.html",
+            {
+                "request": request,
+                **data.dict(),
+                "house_rules_text": house_rules_text,
+                "appliances_text": appliances_text,
+                "error": str(e),
+            },
+        )
+
+    return RedirectResponse(url=f"/admin/properties/{slug}/edit", status_code=303)
 
 @app.get(
     "/admin/properties/{slug}/edit",

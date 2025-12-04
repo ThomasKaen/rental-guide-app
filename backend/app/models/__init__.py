@@ -1,1 +1,1 @@
-from app.models.property import Property  # noqa
+from app.models.property_models import Property  # noqa

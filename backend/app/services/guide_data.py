@@ -1,4 +1,4 @@
-from app.schemas.guide import Guide, LocalRecommendation
+from app.schemas.guide_schemas import Guide, LocalRecommendation
 
 # Phase 1: hard-coded example guide.
 # Replace with your real flat details.

@@ -3,8 +3,8 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal, engine, Base
-from app.models.property import Property
-from app.schemas.property import PropertyUpdate
+from app.models.property_models import Property
+from app.schemas.property_schemas import PropertyUpdate, PropertyCreate
 
 
 # Make sure tables exist
@@ -23,8 +23,35 @@ def get_property_by_slug(db: Session, slug: str) -> Optional[Property]:
     return db.query(Property).filter(Property.slug == slug).first()
 
 def get_all_properties(db: Session) -> List[Property]:
-    """Return all properties ordered by name."""
     return db.query(Property).order_by(Property.property_name).all()
+
+def create_property_from_schema(db: Session, data: PropertyCreate) -> Property:
+    # enforce unique slug
+    existing = db.query(Property).filter(Property.slug == data.slug).first()
+    if existing:
+        raise ValueError(f"Property with slug '{data.slug}' already exists")
+
+    prop = Property(
+        slug=data.slug.strip(),
+        property_name=data.property_name,
+        address=data.address,
+        contact_phone=data.contact_phone,
+        contact_email=data.contact_email,
+        wifi_name=data.wifi_name,
+        wifi_password=data.wifi_password,
+        checkin_time=data.checkin_time,
+        checkout_time=data.checkout_time,
+        checkin_instructions=data.checkin_instructions,
+        checkout_instructions=data.checkout_instructions,
+        house_rules_text="\n".join([r.strip() for r in data.house_rules if r.strip()]),
+        appliances_text="\n".join([a.strip() for a in data.appliances if a.strip()]),
+        local_recommendations_text=data.local_recommendations_text,
+        emergency_info=data.emergency_info,
+    )
+    db.add(prop)
+    db.commit()
+    db.refresh(prop)
+    return prop
 
 def ensure_seed_property(db: Session):
     """Create an initial example property if none exists."""

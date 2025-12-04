@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 from app.services import guide_data
-from app.schemas.guide import Guide
+from app.schemas.guide_schemas import Guide
 
 
 # For Phase 1 we just keep an in-memory dict.
