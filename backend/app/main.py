@@ -10,6 +10,7 @@ from app.services.property_service import (
     get_property_by_slug,
     ensure_seed_property,
     update_property_from_schema,
+    get_all_properties,
 )
 from app.schemas.property import PropertyUpdate
 
@@ -85,7 +86,22 @@ async def guide_page(request: Request, slug: str, db=Depends(get_db)):
 
 @app.get("/admin", include_in_schema=False)
 async def admin_root():
-    return RedirectResponse(url="/admin/properties/company-flat-1/edit")
+    return RedirectResponse(url="/admin/properties")
+
+@app.get(
+    "/admin/properties",
+    response_class=HTMLResponse,
+    include_in_schema=False,
+)
+async def list_properties_page(request: Request, db=Depends(get_db)):
+    props = get_all_properties(db)
+    return templates.TemplateResponse(
+        "admin_property_list.html",
+        {
+            "request": request,
+            "properties": props,
+        },
+    )
 
 
 @app.get(

@@ -1,4 +1,20 @@
-FROM ubuntu:latest
-LABEL authors="Tamas"
+FROM python:3.14-slim
 
-ENTRYPOINT ["top", "-b"]
+WORKDIR /app
+
+# Install system deps (optional but nice to have)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+ && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy app code
+COPY app ./app
+
+# Expose port for Cloud Run (it expects $PORT)
+ENV PORT=8080
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy.orm import Session
 
@@ -22,6 +22,9 @@ def get_db():
 def get_property_by_slug(db: Session, slug: str) -> Optional[Property]:
     return db.query(Property).filter(Property.slug == slug).first()
 
+def get_all_properties(db: Session) -> List[Property]:
+    """Return all properties ordered by name."""
+    return db.query(Property).order_by(Property.property_name).all()
 
 def ensure_seed_property(db: Session):
     """Create an initial example property if none exists."""
